@@ -7,6 +7,8 @@
         body { margin: 0; }
         canvas { width: 100%; height: 100% }
 
+
+
         /*canvas { width: 100%; height: 100% }*/
 
     </style>
@@ -20,6 +22,9 @@
 
 <script>
     var cubes = [];
+    var movables = [];
+
+    var move = false;
 
     window.addEventListener('click', onDocumentMouseDown, false);
 
@@ -92,21 +97,39 @@
 
     var geometry = new THREE.BoxGeometry( 0.6, 0.3, 0.3 );
 
-    var cubeMaterials =
+   // var texture = THREE.ImageUtils.loadTexture('https://preview.ibb.co/hZXYmz/ricoh_theta_s.jpg');
+
+    //var fff =new THREE.MeshLambertMaterial( { map: new THREE.TextureLoader().load('js/img.jpg'), side: THREE.DoubleSide  } );
+    //fff.emissive.setRGB() ;
+
+    var cubeMaterials = //map: new THREE.TextureLoader().load('js/img.jpg')
         [
-            new THREE.MeshLambertMaterial( { map: new THREE.TextureLoader().load('js/img.jpg'), side: THREE.DoubleSide  } ),
-            new THREE.MeshLambertMaterial( { map: new THREE.TextureLoader().load('js/img.jpg'), side: THREE.DoubleSide  } ),
-            new THREE.MeshLambertMaterial( { map: new THREE.TextureLoader().load('js/img.jpg'), side: THREE.DoubleSide  } ),
-            new THREE.MeshLambertMaterial( { map: new THREE.TextureLoader().load('js/img.jpg'), side: THREE.DoubleSide  } ),
-            new THREE.MeshLambertMaterial( { map: new THREE.TextureLoader().load('js/img.jpg'), side: THREE.DoubleSide  } ),
-            new THREE.MeshLambertMaterial( { map: new THREE.TextureLoader().load('js/img.jpg'), side: THREE.DoubleSide  } )
+            new THREE.MeshLambertMaterial( { map: new THREE.TextureLoader().load('js/img.jpg'), side: THREE.DoubleSide, emissive: 0x2a2a2a,
+                emissiveIntensity: .5  } ),
+            new THREE.MeshLambertMaterial( { map: new THREE.TextureLoader().load('js/img.jpg'), side: THREE.DoubleSide,  emissive: 0x2a2a2a,
+                emissiveIntensity: .5  } ),
+            new THREE.MeshLambertMaterial( { map: new THREE.TextureLoader().load('js/img.jpg'), side: THREE.DoubleSide,  emissive: 0x2a2a2a,
+                emissiveIntensity: .5  } ),
+            new THREE.MeshLambertMaterial( { map: new THREE.TextureLoader().load('js/img.jpg'), side: THREE.DoubleSide,  emissive: 0x2a2a2a,
+                emissiveIntensity: 1.5  } ),
+            new THREE.MeshLambertMaterial( { map: new THREE.TextureLoader().load('js/img.jpg'), side: THREE.DoubleSide,  emissive: 0x2a2a2a,
+                emissiveIntensity: 1.5 } ),
+            new THREE.MeshLambertMaterial( { map: new THREE.TextureLoader().load('js/img.jpg'), side: THREE.DoubleSide,  emissive: 0x2a2a2a,
+                emissiveIntensity: 1.5  } )
 
         ]
+
+
+    //maybe just use 2 lists to speed up the looping
+    //where in the second list the ones get stored that can move
+
 
     //var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
     var material = new THREE.MeshFaceMaterial(cubeMaterials);
 
-    var geometry2 = new THREE.BoxGeometry(2, 1, 1);
+    // material.emissive = new THREE.Color( 0x00ffff );
+    // material.emissiveIntensity = 2;
+
     var pos = -30;
     for (let i = 0; i < 20; i++) {
         if (i%2 === 0) pos = -30; else pos = -31;
@@ -118,12 +141,58 @@
             var random = Math.random() * (+max - +min) + +min;
 
 
+            var geometry2 = null;
+            if (i === 0 || i === 1) {
+                geometry2 = new THREE.BoxGeometry(2, 0.5, 1);
+            } else {
+                geometry2 = new THREE.BoxGeometry(2, 1, 1);
+            }
+
+
+
             var cube = new THREE.Mesh( geometry2, material );
+
             cube.castShadow = true;
-            cube.callback = function() { console.log( 'AWWWYEAH' ); } //this.name
+            cube.receiveShadow = true;
+
+
+
+
             cube.position.x = pos;
             cube.position.y = i;
             cube.position.z = random;
+
+
+            // if (cube.name === '1-1') {
+            //
+            //     cube.callback = function () {
+            //         console.log(i + '-' + y);
+            //         console.log('weffewfewf');
+            //         // move = true;
+            //     } //this.name
+            // } else {
+                cube.callback = function () {
+                    console.log(i + '-' + y);
+                } //this.name
+            // }
+            cube.name = i + '-' + y;
+
+            if (cube.name === '1-1') {
+
+                cube.callback = function () {
+                    console.log(i + '-' + y);
+                    console.log('weffewfewf');
+                     move = true;
+                } //this.name
+            }
+
+            //identifier for later usage
+
+
+            //console.log(cube.name);
+
+             if (cube.name === '1-2') movables.push(cube);
+
             cubes.push(cube);
             scene.add( cube );
             pos+=2;
@@ -186,7 +255,39 @@
 
     }
 
+    var distance = 0;
+
 var update = function() {
+
+
+        if (move) {
+
+            var cubeM = movables[0];
+
+            var direction = 4;
+
+
+            if (direction === 1) { // right
+                distance += 0.05;
+                if (distance < 2) cubeM.position.x += 0.05;
+            } else
+            if (direction === 2) { // left
+                distance += 0.05;
+                if (distance < 2) cubeM.position.x -= 0.05;
+            } else
+            if (direction === 3) { // up
+                distance += 0.05;
+                if (distance < 1) cubeM.position.y += 0.05;
+            } else
+            if (direction === 4) { // down
+                distance += 0.05;
+                if (distance < 1) cubeM.position.y -= 0.05;
+            }
+
+
+            //scene.remove(cubeM);
+        }
+
     //      cube.rotation.x += 0.01;
     //      cube.rotation.y += 0.01;
     //
